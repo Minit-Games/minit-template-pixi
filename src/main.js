@@ -18,6 +18,7 @@ import {
 
 import { createScene } from './scene.js';
 import { createAudio } from './audio.js';
+import { attachViewportScaler, SURFACE_WIDTH, SURFACE_HEIGHT } from './layout.js';
 
 initializeSDK();
 
@@ -36,7 +37,10 @@ const MUSIC_ON = getConfigValue('music', 'true') === 'true';
 const ROUND_SECONDS = 30;
 
 const canvas = document.getElementById('game');
+const wrapper = document.getElementById('wrapper');
 const audio = createAudio({ sound: SOUND_ON, music: MUSIC_ON });
+
+attachViewportScaler(wrapper);
 
 let score = 0;
 let rally = 0;          // taps since the ball last touched the grass
@@ -48,7 +52,7 @@ let finished = false;
    Layout only: position with y/padding, Score on the right, secondary stats
    on the left. The SDK ships the styling and it is meant to look the same
    across drops, so no colours or sizes are passed. */
-const header = createHeaderBar({ y: 28, padding: 22 });
+const header = createHeaderBar({ y: 28, padding: 22, container: wrapper });
 const timePanel = header.addPanel({ label: 'Time', value: ROUND_SECONDS });
 const scorePanel = header.addPanel({ label: 'Score', value: 0, align: 'right' });
 
@@ -70,6 +74,7 @@ async function boot() {
 			spawnRewards(POINTS_PER_TAP, {
 				start: { x: at.x, y: at.y },
 				target: scorePanel.getPosition(),
+				container: wrapper,
 				onAllArrive: () => {
 					score += POINTS_PER_TAP;
 					scorePanel.setValue(score, { animate: true });
@@ -99,10 +104,9 @@ async function boot() {
 		if (finished) { return; }
 		// The gesture that starts the game is also the one that unlocks audio: a
 		// context resumed outside a gesture stays suspended, and everything
-		// played into it is discarded rather than queued.
+		// played into it is discarded rather than queued. Hit-testing itself is
+		// owned by scene.js, via Pixi's own pointer events -- see scene.js.
 		audio.unlock();
-		const rect = canvas.getBoundingClientRect();
-		scene.tryHit(e.clientX - rect.left, e.clientY - rect.top);
 	}, { passive: true });
 
 	function endGame() {
@@ -129,7 +133,7 @@ async function boot() {
 	let tutorial = null;
 	let finger = null;
 	if (shouldShowTutorial()) {
-		tutorial = createTutorialOverlay({ container: document.body });
+		tutorial = createTutorialOverlay({ container: wrapper, width: SURFACE_WIDTH, height: SURFACE_HEIGHT });
 		finger = tutorial.showFinger({ x: scene.ballScreen.x, y: scene.ballScreen.y + 40 });
 		canvas.addEventListener('pointerdown', () => {
 			if (tutorial) { tutorial.destroy(); tutorial = null; finger = null; }

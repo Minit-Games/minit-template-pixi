@@ -74,6 +74,7 @@ node tools/package.mjs
 index.html            page shell + the Minit audio repair (read the comment)
 src/main.js           SDK lifecycle, scoring, HUD — the part worth copying
 src/scene.js          the world: Pixi display objects, physics and layout
+src/layout.js         fixed 960×1480 design surface, scaled to the viewport
 src/audio.js          one AudioContext: the music loop and synthesised effects
 src/assets/music.js   generated — the loop, as inlined mu-law bytes
 public/meta.json      title, controls, logic, description, config knobs
@@ -200,9 +201,20 @@ Most are enforced by `tools/check-meta.mjs`, which runs on every build.
   instead, and fails on anything off-origin.
 - **Touch only.** Pointer events throughout, tap targets past 44 px, no hover
   and no keyboard.
-- **Portrait, any aspect ratio.** The app's slot is nearer 2:3 than the 9:18 a
-  phone screen suggests, and differs again on the web player — so nothing is
-  hardcoded and the layout is measured from the live viewport.
+- **Portrait, one fixed 960×1480 design surface, scaled to fit.** The app's
+  slot is nearer 2:3 than the 9:18 a phone screen suggests, and differs again
+  on the web player, so `src/scene.js` authors every position against a
+  single fixed surface and `src/layout.js` scales the whole thing uniformly
+  with one CSS `transform: scale(...)` on `#wrapper`, rather than deriving
+  gameplay coordinates from the viewport. Crop is capped at 5% per axis before it
+  falls back from cover to letterboxed fit, must-see content stays inside the
+  central 90% of the surface, and tap targets stay ≥44 CSS px after the
+  scale-down. The scaler re-runs on resize, orientation change, the visual
+  viewport, and a `ResizeObserver` — not on every frame. This is the Minit
+  Games **recommended** layout convention, not an unconditional platform
+  requirement; the canonical source is the `@minit-games/sdk` package
+  README's own "Screen, viewport, and scaling" section:
+  [Minit-Games/minit-sdk § "Screen, viewport, and scaling"](https://github.com/Minit-Games/minit-sdk#screen-viewport-and-scaling).
 
 ## Regenerating the music
 
