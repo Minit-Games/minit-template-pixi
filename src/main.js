@@ -18,7 +18,7 @@ import {
 
 import { createScene } from './scene.js';
 import { createAudio } from './audio.js';
-import { attachViewportScaler } from './layout.js';
+import { attachViewportScaler, SURFACE_WIDTH, SURFACE_HEIGHT } from './layout.js';
 
 initializeSDK();
 
@@ -133,7 +133,7 @@ async function boot() {
 	let tutorial = null;
 	let finger = null;
 	if (shouldShowTutorial()) {
-		tutorial = createTutorialOverlay({ container: wrapper, width: 960, height: 1480 });
+		tutorial = createTutorialOverlay({ container: wrapper, width: SURFACE_WIDTH, height: SURFACE_HEIGHT });
 		finger = tutorial.showFinger({ x: scene.ballScreen.x, y: scene.ballScreen.y + 40 });
 		canvas.addEventListener('pointerdown', () => {
 			if (tutorial) { tutorial.destroy(); tutorial = null; finger = null; }
