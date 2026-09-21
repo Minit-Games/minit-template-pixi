@@ -12,6 +12,7 @@
    worth.
    ========================================================================== */
 import { Application, Container, Graphics, Sprite, Texture } from 'pixi.js';
+import { SURFACE_WIDTH, SURFACE_HEIGHT } from './layout.js';
 
 const GRAVITY = 2600;          // px/s^2 at unit scale 1
 const RESTITUTION = 0.62;
@@ -50,10 +51,22 @@ function gradientTexture(stops) {
 
 export async function createScene(canvas, { onTap, onBounce }) {
 	const app = new Application();
-	// resizeTo keeps the renderer matched to the window on every rotation and
-	// keyboard event, which is the only honest source for a slot whose shape
-	// the host decides.
-	await app.init({ canvas, resizeTo: window, antialias: true, background: 0x1b4a8f });
+	// A fixed 960x1480 design surface, scaled into the real viewport by the
+	// CSS transform on #wrapper (src/layout.js) rather than resized to it --
+	// see the README's "Screen, viewport, and scaling" convention.
+	await app.init({
+		canvas,
+		width: SURFACE_WIDTH,
+		height: SURFACE_HEIGHT,
+		resolution: Math.min(window.devicePixelRatio || 1, 2),
+		autoDensity: true,
+		antialias: true,
+		background: 0x1b4a8f,
+	});
+
+	app.stage.eventMode = 'static';
+	app.stage.hitArea = app.screen;
+	app.stage.on('pointerdown', (e) => { tryHit(e.global.x, e.global.y); });
 
 	const world = new Container();
 	app.stage.addChild(world);
@@ -104,9 +117,8 @@ export async function createScene(canvas, { onTap, onBounce }) {
 	let resting = true;
 
 	function layout() {
-		const vv = window.visualViewport;
-		W = Math.round(vv ? vv.width : document.documentElement.clientWidth);
-		H = Math.round(vv ? vv.height : document.documentElement.clientHeight);
+		W = SURFACE_WIDTH;
+		H = SURFACE_HEIGHT;
 		horizon = Math.round(H * HORIZON);
 		// The short edge drives scale, so a tall narrow slot and a squat wide
 		// one both get a ball that fits and reads at the same size.
@@ -258,11 +270,9 @@ export async function createScene(canvas, { onTap, onBounce }) {
 	}
 
 	layout();
-	window.addEventListener('resize', layout);
-	window.visualViewport?.addEventListener('resize', layout);
 
 	return {
-		app, step, tryHit, layout,
+		app, step, tryHit,
 		get ballScreen() { return { x: state.x, y: state.y }; },
 	};
 }
