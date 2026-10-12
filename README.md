@@ -106,7 +106,7 @@ itself on a 30 second clock rather than asking the player to press a button.
 | --- | --- | --- |
 | `initializeSDK()` | once, at startup | top of `src/main.js` |
 | `loadingDone()` | the first interactive frame is on screen | in the update handler |
-| `reportResult(score, { flavorText, userData })` | once, when the clock runs out | `endGame()` |
+| `reportResult(score, { flavorText })` | once, when the clock runs out | `endGame()` |
 
 Until `loadingDone()` fires the app holds its own loading screen over the
 WebView, so it goes as soon as there is a real frame. After `reportResult` the
@@ -115,6 +115,10 @@ animating for nobody.
 
 `flavorText` is a session moment rendered by the host, never in-game, and never
 the score again — this template sends the best rally.
+
+The first-play tutorial is gated by the host: `shouldShowTutorial()` hides it
+for a player the host reports has already played, so the game stores nothing
+for it.
 
 ## Config values
 
