@@ -49,7 +49,7 @@ function gradientTexture(stops) {
 	return Texture.from(c);
 }
 
-export async function createScene(canvas, { onTap, onBounce }) {
+export async function createScene(canvas, { particleBudget, fullMotion, onTap, onBounce }) {
 	const app = new Application();
 	// A fixed 960x1480 design surface, scaled into the real viewport by the
 	// CSS transform on #wrapper (src/layout.js) rather than resized to it --
@@ -103,6 +103,7 @@ export async function createScene(canvas, { onTap, onBounce }) {
 	let W = 0, H = 0, horizon = 0, unit = 1, ballRadius = 1, groundY = 0;
 	const state = { x: 0, y: 0, vx: 0, vy: 0, squash: 0, spin: 0 };
 	let started = false;
+	let shakeRemaining = 0;
 	// Whether the ball has settled. Without this the ball never stops bouncing:
 	// gravity adds GRAVITY * dt to vy every frame -- about 43 px/s at 60 fps,
 	// 130 at the clamped 20 fps floor -- which is already above REST_SPEED, so
@@ -206,8 +207,10 @@ export async function createScene(canvas, { onTap, onBounce }) {
 				state.vy = -state.vy * RESTITUTION;
 				state.vx *= 0.86;
 				state.squash = Math.min(0.5, impact / (900 * scale));
-				spawn(state.x, groundY + ballRadius * 0.55, 8, 0x8ee06a);
-				onBounce(impact / (1400 * scale));
+				const bounceStrength = impact / (1400 * scale);
+				spawn(state.x, groundY + ballRadius * 0.55, Math.round(particleBudget * 4 / 7), 0x8ee06a);
+				if (fullMotion && bounceStrength > 0.6) { shakeRemaining = 0.18; }
+				onBounce(bounceStrength);
 			} else {
 				state.vy = 0;
 				state.vx *= 0.9;
@@ -244,6 +247,14 @@ export async function createScene(canvas, { onTap, onBounce }) {
 		shadow.position.set(state.x, groundY + ballRadius * 0.62);
 		shadow.scale.set(ballRadius * (1.05 - drop * 0.4), ballRadius * (1.05 - drop * 0.4));
 		shadow.alpha = 0.34 - drop * 0.22;
+
+		if (shakeRemaining > 0) {
+			shakeRemaining = Math.max(0, shakeRemaining - dt);
+			const amount = unit * 0.8 * (shakeRemaining / 0.18);
+			world.position.set((Math.random() - 0.5) * amount, (Math.random() - 0.5) * amount);
+		} else {
+			world.position.set(0, 0);
+		}
 	}
 
 	function tryHit(x, y) {
@@ -264,7 +275,7 @@ export async function createScene(canvas, { onTap, onBounce }) {
 		state.vx += (dx / reach) * 320 * scale;
 		state.spin += (dx / reach) * 6;
 		state.squash = -0.45;
-		spawn(state.x, state.y + ballRadius * 0.3, 14, 0xfff6b0);
+		spawn(state.x, state.y + ballRadius * 0.3, particleBudget, 0xfff6b0);
 		onTap();
 		return true;
 	}
