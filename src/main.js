@@ -32,30 +32,18 @@ const SOUND_ON = getConfigValue('sound', 'true') === 'true';
 const MUSIC_ON = getConfigValue('music', 'true') === 'true';
 
 /* ---- effects budget -------------------------------------------------
-   SDK 1.19 adds these getters. Feature detection keeps older SDK pins usable,
-   including local preview where there are no host-provided device fields. */
-const deviceParams = new URLSearchParams(window.location.search);
-const reducedMotionParam = deviceParams.get('reducedMotion');
+   Feature detection keeps SDKs without these getters usable, including local
+   preview where there are no host-provided device fields. */
 const reducedMotion = typeof Minit.prefersReducedMotion === 'function'
 	? Minit.prefersReducedMotion()
-	: reducedMotionParam === '1' || reducedMotionParam === 'true'
-		? true
-		: reducedMotionParam === '0' || reducedMotionParam === 'false'
-			? false
-			: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
-const motionQualityParam = deviceParams.get('motionQuality');
+	: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 const motionQuality = typeof Minit.getMotionQuality === 'function'
 	? Minit.getMotionQuality()
-	: motionQualityParam === 'full' || motionQualityParam === 'reduced'
-		? motionQualityParam
-		: reducedMotion ? 'reduced' : 'full';
-const deviceTierParam = deviceParams.get('deviceTier');
+	: reducedMotion ? 'reduced' : 'full';
 const deviceTier = typeof Minit.getDeviceTier === 'function'
 	? Minit.getDeviceTier()
-	: ['low', 'medium', 'high', 'unknown'].includes(deviceTierParam)
-		? deviceTierParam
-		: 'unknown';
-const tierParticleBudget = { low: 8, medium: 10, high: 14, unknown: 8 }[deviceTier];
+	: 'unknown';
+const tierParticleBudget = { low: 8, medium: 10, high: 14, unknown: 10 }[deviceTier];
 const particleBudget = reducedMotion ? 0
 	: motionQuality === 'reduced' ? Math.max(2, Math.round(tierParticleBudget / 3))
 		: tierParticleBudget;

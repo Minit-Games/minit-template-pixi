@@ -148,9 +148,9 @@ The effects budget in `src/main.js` reads `getMotionQuality()`,
 lower tiers and reduced motion quality fewer particles, while an accessibility
 preference for reduced motion removes decorative particles and screen shake.
 
-These getters arrive in `@minit-games/sdk` 1.19.0. The example feature-detects
-them so older SDK versions use the same URL and browser fallbacks instead.
-Try each mode on the local development URL:
+The example feature-detects these getters. On an SDK without them, it falls
+back to the browser's reduced-motion setting. The URL overrides below take
+effect once the SDK provides the getters:
 
 ```
 http://localhost:5173/?motionQuality=reduced
