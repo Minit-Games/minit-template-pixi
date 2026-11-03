@@ -141,6 +141,26 @@ http://localhost:5173/?pointsPerTap=25&music=false
 `npm run build` cross-checks the declared keys against the ones the bundle
 actually reads, in both directions.
 
+## Device-adaptive effects
+
+The effects budget in `src/main.js` reads `getMotionQuality()`,
+`getDeviceTier()`, and `prefersReducedMotion()` once during setup. It gives
+lower tiers and reduced motion quality fewer particles, while an accessibility
+preference for reduced motion removes decorative particles and screen shake.
+
+These getters arrive in `@minit-games/sdk` 1.19.0. The example feature-detects
+them so older SDK versions use the same URL and browser fallbacks instead.
+Try each mode on the local development URL:
+
+```
+http://localhost:5173/?motionQuality=reduced
+http://localhost:5173/?deviceTier=low
+http://localhost:5173/?reducedMotion=1
+```
+
+See [Device-adaptive effects](https://minit.studio/docs/device-adaptive-effects)
+for the getter contract and recommended effect budgets.
+
 ## Audio, and why index.html is the way it is
 
 A game can be perfectly healthy — context running, engine mixing, buffers
