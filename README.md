@@ -22,7 +22,7 @@ npm run dev        # local dev server
 npm run package    # build, verify, and write dist/minit-template-pixi.zip
 ```
 
-Upload `dist/minit-template-pixi.zip` at [console.minit.games](https://console.minit.games).
+Upload `dist/minit-template-pixi.zip` at [minit.studio](https://minit.studio).
 
 **Size.** ~880 KB built (385 KB gzipped), most of it the engine and the music.
 
